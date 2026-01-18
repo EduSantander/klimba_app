@@ -1,0 +1,219 @@
+import { Link } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import DashboardHeader from "@/components/DashboardHeader";
+import Footer from "@/components/Footer";
+import { Calendar, Award, MessageCircle, BookOpen, TrendingUp, Zap, Flower2 } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
+import { formatCurrency } from "@/lib/utils";
+import MountainRange from "@/components/MountainRange";
+import FinancialMetrics from "@/components/FinancialMetrics";
+import FinancialSummaryTable from "@/components/FinancialSummaryTable";
+import GamificationPanel from "@/components/GamificationPanel";
+
+const Dashboard = () => {
+  const { debts, getDebtProgress, streak, scheduledPayments, historicalDebtsPaid, getCurrentPlant, getCompletedPlants } = useApp();
+  
+  const progress = getDebtProgress();
+  const totalDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
+  const upcomingPaymentsCount = scheduledPayments.filter(p => !p.paid && (p.amount - p.paidAmount) > 0.01).length;
+  const currentPlant = getCurrentPlant();
+  const completedPlants = getCompletedPlants();
+  const currentPlantProgress = historicalDebtsPaid % 5;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-muted/30">
+      <DashboardHeader />
+      
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-foreground mb-6">Tu Jardín Financiero</h1>
+
+        {/* Financial Metrics */}
+        <div className="mb-8 animate-fade-in">
+          <FinancialMetrics />
+        </div>
+        
+        {/* Three Column Layout */}
+        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+          {/* Left Column: Financial Garden */}
+          <Card className="p-6 bg-gradient-to-br from-growth-light to-card border-growth/20 animate-fade-in">
+            <Link to="/garden" className="block group">
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="p-6 rounded-full bg-growth/20 group-hover:bg-growth/30 transition-colors">
+                  <Flower2 className="h-16 w-16 text-growth" />
+                </div>
+                <div className="w-full">
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Ver Mi Jardín</h3>
+                  {currentPlant && (
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {currentPlant.name}: {currentPlantProgress}/5 deudas
+                    </p>
+                  )}
+                  <p className="text-xs text-growth font-medium mb-4">
+                    {completedPlants.length} planta{completedPlants.length !== 1 ? 's' : ''} florecida{completedPlants.length !== 1 ? 's' : ''}
+                  </p>
+                  
+                  {/* Garden Rules */}
+                  <div className="text-left p-3 bg-growth/10 rounded-lg mb-4">
+                    <p className="text-xs font-medium text-growth mb-1">¿Cómo crece tu jardín?</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>🌱 Cada deuda pagada → +1 progreso</li>
+                      <li>🌸 Cada 5 deudas → 1 flor nueva</li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Deudas pagadas</span>
+                      <span className="font-medium text-growth">{historicalDebtsPaid}</span>
+                    </div>
+                    <Progress value={(currentPlantProgress / 5) * 100} className="h-2" />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </Card>
+
+          {/* Center Column: Debt Mountain with Cordillera */}
+          <Card className="p-6 bg-gradient-to-br from-earth-light to-card border-earth/20 animate-scale-in lg:col-span-1">
+            <Link to="/debts" className="block group">
+              <div className="flex flex-col items-center text-center space-y-2">
+                <MountainRange debts={debts} />
+                <p className="text-sm text-muted-foreground">Deuda Total: ${formatCurrency(totalDebt)}</p>
+                <Button variant="outline" className="w-full border-earth text-earth hover:bg-earth/10 mt-2">
+                  Ver Detalles
+                </Button>
+              </div>
+            </Link>
+          </Card>
+
+          {/* Right Column: Mini Cards */}
+          <div className="space-y-4 animate-slide-up">
+            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+              <Link to="/payments" className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-trust/10">
+                  <Calendar className="h-5 w-5 text-trust" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground">Próximos Pagos</h4>
+                  <p className="text-sm text-muted-foreground">{upcomingPaymentsCount} pendientes</p>
+                </div>
+              </Link>
+            </Card>
+
+            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+              <Link to="/badges" className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-growth/10">
+                  <Award className="h-5 w-5 text-growth" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground">Mis Insignias</h4>
+                  <p className="text-sm text-muted-foreground">Ver logros</p>
+                </div>
+              </Link>
+            </Card>
+
+            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+              <Link to="/streaks" className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-accent/10">
+                  <Zap className="h-5 w-5 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground">Rachas</h4>
+                  <p className="text-sm text-muted-foreground">{streak.current} días</p>
+                </div>
+              </Link>
+            </Card>
+
+            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+              <Link to="/support" className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-accent/10">
+                  <MessageCircle className="h-5 w-5 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-foreground">Soporte y Ayuda</h4>
+                  <p className="text-sm text-muted-foreground">FAQ y contacto</p>
+                </div>
+              </Link>
+            </Card>
+          </div>
+        </div>
+
+        {/* Financial Summary Table */}
+        <div className="mb-8 animate-fade-in">
+          <FinancialSummaryTable />
+        </div>
+
+        {/* Gamification Panel */}
+        <div className="mb-8 animate-scale-in">
+          <GamificationPanel />
+        </div>
+
+        {/* Bottom: Micro-Lessons */}
+        <div className="animate-fade-in mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-foreground">Micro-Lecciones de Crecimiento</h2>
+            <Link to="/lessons">
+              <Button variant="ghost" className="text-growth hover:text-growth/80">
+                Ver Todas
+              </Button>
+            </Link>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-4">
+            <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer group">
+              <Link to="/lessons" className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 rounded-lg bg-growth/10 group-hover:bg-growth/20 transition-colors">
+                    <TrendingUp className="h-6 w-6 text-growth" />
+                  </div>
+                  <BookOpen className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-1">Estrategias Inteligentes de Ahorro</h4>
+                  <p className="text-sm text-muted-foreground">Aprende a ahorrar de manera más efectiva</p>
+                </div>
+              </Link>
+            </Card>
+
+            <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer group">
+              <Link to="/lessons" className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 rounded-lg bg-trust/10 group-hover:bg-trust/20 transition-colors">
+                    <Calendar className="h-6 w-6 text-trust" />
+                  </div>
+                  <BookOpen className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-1">Planificación de Pagos</h4>
+                  <p className="text-sm text-muted-foreground">Domina tu calendario de pagos</p>
+                </div>
+              </Link>
+            </Card>
+
+            <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer group">
+              <Link to="/lessons" className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors">
+                    <MessageCircle className="h-6 w-6 text-accent" />
+                  </div>
+                  <BookOpen className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-1">Tácticas de Negociación</h4>
+                  <p className="text-sm text-muted-foreground">Reduce tus tasas de interés</p>
+                </div>
+              </Link>
+            </Card>
+          </div>
+        </div>
+
+      </main>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default Dashboard;
